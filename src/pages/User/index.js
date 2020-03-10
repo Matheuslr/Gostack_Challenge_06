@@ -27,6 +27,7 @@ export default class User extends Component {
         stars: [],
         loading: true,
         page: 1,
+        refreshing: false,
     };
 
     static propTypes = {
@@ -53,6 +54,7 @@ export default class User extends Component {
             stars: page >= 2 ? [...stars, ...response.data] : response.data,
             loading: false,
             page,
+            refreshing: false,
         });
     };
 
@@ -67,9 +69,13 @@ export default class User extends Component {
         navigation.navigate('Repository', { repository });
     };
 
+    refreshList = () => {
+        this.setState({ refreshing: true, stars: [] }, this.load);
+    };
+
     render() {
         const { navigation } = this.props;
-        const { stars, loading } = this.state;
+        const { stars, loading, refreshing } = this.state;
         const user = navigation.getParam('user');
 
         return (
@@ -85,6 +91,8 @@ export default class User extends Component {
                     <Stars
                         data={stars}
                         keyExtractor={star => String(star.id)}
+                        onRefresh={this.refreshList}
+                        refreshing={refreshing}
                         onEndReachedThreshold={0.2}
                         onEndReached={this.loadMore}
                         renderItem={({ item }) => (

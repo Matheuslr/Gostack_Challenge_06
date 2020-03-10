@@ -30,6 +30,7 @@ export default class Main extends Component {
         users: [],
         loading: false,
         error: null,
+
     };
 
     async componentDidMount() {
