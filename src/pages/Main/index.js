@@ -34,7 +34,6 @@ export default class Main extends Component {
 
     async componentDidMount() {
         const users = await AsyncStorage.getItem('users');
-
         if (users) {
             this.setState({
                 users: JSON.parse(users),
@@ -44,7 +43,6 @@ export default class Main extends Component {
 
     async componentDidUpdate(_, prevState) {
         const { users } = this.state;
-
         if (prevState.users !== users) {
             await AsyncStorage.setItem('users', JSON.stringify(users));
         }
@@ -53,7 +51,17 @@ export default class Main extends Component {
     handleAddUser = async () => {
         const { users, newUser } = this.state;
         this.setState({ loading: true });
+
         try {
+            const isInUsers = users.find(
+                user => user.login.toUpperCase() === newUser.toUpperCase()
+            );
+            if (newUser === '') {
+                throw new Error('You need to sent a user');
+            }
+            if (isInUsers) {
+                throw new Error('User in users');
+            }
             const response = await api.get(`/users/${newUser}`);
             const data = {
                 name: response.data.name,
@@ -86,7 +94,6 @@ export default class Main extends Component {
 
     render() {
         const { users, newUser, loading, error } = this.state;
-        console.tron.log(error);
         return (
             <Container>
                 <Form>

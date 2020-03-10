@@ -26,22 +26,46 @@ export default class User extends Component {
     state = {
         stars: [],
         loading: true,
+        page: 1,
     };
 
     static propTypes = {
         navigation: PropTypes.shape({
+            navigate: PropTypes.func,
             getParam: PropTypes.func,
         }).isRequired,
     };
 
     async componentDidMount() {
+        this.load();
+    }
+
+    load = async (page = 1) => {
+        const { stars } = this.state;
         const { navigation } = this.props;
         const user = navigation.getParam('user');
 
-        const response = await api.get(`/users/${user.login}/starred`);
+        const response = await api.get(`/users/${user.login}/starred`, {
+            params: { page },
+        });
 
-        this.setState({ stars: response.data, loading: false });
-    }
+        this.setState({
+            stars: page >= 2 ? [...stars, ...response.data] : response.data,
+            loading: false,
+            page,
+        });
+    };
+
+    loadMore = () => {
+        const { page } = this.state;
+        const nextPage = page + 1;
+        this.load(nextPage);
+    };
+
+    handleNavigate = repository => {
+        const { navigation } = this.props;
+        navigation.navigate('Repository', { repository });
+    };
 
     render() {
         const { navigation } = this.props;
@@ -61,8 +85,10 @@ export default class User extends Component {
                     <Stars
                         data={stars}
                         keyExtractor={star => String(star.id)}
+                        onEndReachedThreshold={0.2}
+                        onEndReached={this.loadMore}
                         renderItem={({ item }) => (
-                            <Starred>
+                            <Starred onPress={() => this.handleNavigate(item)}>
                                 <OwnerAvatar
                                     source={{ uri: item.owner.avatar_url }}
                                 />
